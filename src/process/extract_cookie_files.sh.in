@@ -1,0 +1,27 @@
+#!/bin/bash
+
+#After this script is executed, the output directory contains one file for each cookie file found on the subject disk image.  Each cookie file is named according to the Fiwalk/TSK id.
+
+if [ $# -lt 2 ]; then
+  echo "Usage: $0 <image> <out_directory>"
+  exit 1
+fi
+
+prefix=@prefix@
+pkgdatadir=@datadir@/@PACKAGE@
+
+#One-liner c/o http://stackoverflow.com/a/246128/1207160
+SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+outdir="$2"
+
+xmlfile="${outdir/%extract_cookie_files.sh/make_fiwalk_dfxml.sh}/fiout.xml"
+
+#TODO: Add output directory parameter to extraction script
+cd "$outdir"; python3 "${pkgdatadir}/python/extract_cookie_files.py" -x"$xmlfile" "$1"
+
+extract_status=$?
+if [ $extract_status -ne 0 ]; then
+  echo "extract_cookie_files.py exited with status $extract_status" >&2
+  exit $extract_status
+fi

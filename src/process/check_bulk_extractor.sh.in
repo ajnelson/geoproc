@@ -1,0 +1,41 @@
+#!/bin/bash
+if [ $# -lt 2 ]; then
+  echo "Usage: $0 <image> <out_directory>"
+  exit 1
+fi
+
+prefix=@prefix@
+pkgdatadir=@datadir@/@PACKAGE@
+
+outdir="$2/bulk_extractor.out"
+
+if [ -d "$outdir" ]; then
+  rmdir "$outdir" || exit 1
+fi
+
+prior_outdir="${2/%check_bulk_extractor.sh/do_bulk_extractor.sh}/bulk_extractor.out"
+
+image=$1
+
+if [ "x$image" == "x" ]; then
+  echo "check_bulk_extractor.sh: Error: image variable not set." >&2
+  exit 1
+fi
+
+xmllint "$prior_outdir/report.xml" >/dev/null
+prior_status=$?
+if [ $prior_status -eq 0 ]; then
+  echo "check_bulk_extractor.sh: Note: Prior run succeeded (inferred by report.xml being well-formed).  Skipping rest of check and linking do_bulk_extractor.sh results here." >&2
+  ln -s "$prior_outdir" "$outdir"
+  exit 0
+fi
+
+#If we reach this point, there was no success.
+num_cores=$(python3 "${pkgdatadir}/python/geoproc_cfg.py" --print_parameter="cores_available")
+if [ $? -ne 0 ]; then
+  echo "check_bulk_extractor.sh: Warning: Error retrieving core usage parameter.  Defaulting to 8." >&2
+  num_cores=8
+fi
+
+echo "check_bulk_extractor.sh: Note: Previous Bulk Extractor run did not successfully complete.  Running with one less scanner to help isolate problem." >&2
+bulk_extractor -e net -j$num_cores -o "$outdir" "$image"

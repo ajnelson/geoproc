@@ -1,0 +1,44 @@
+//Dependency graph of geoproc's Makefile
+digraph "geoproc.makefile"
+{
+	analyze_http_headers_sh [label="analyze_http_headers.sh"];
+	analyze_http_headers_sh -> fetch_location_lists_sh;
+	analyze_http_headers_sh -> maxmind_blocktable;
+	analyze_http_headers_sh -> maxmind_locationtable;
+	analyze_http_headers_sh -> reconstruct_http_headers_sh;
+	analyze_http_headers_sh -> verify_fiwalk_versus_tsk_db_sh [style=dashed];
+
+	diskimage [label="Disk image" shape="hexagon"];
+
+	do_bulk_extractor_sh [label="do_bulk_extractor.sh"];
+	do_bulk_extractor_sh -> diskimage;
+	do_bulk_extractor_sh -> verify_disk_image_sh [style=dashed];
+
+	fetch_location_lists_sh [label="fetch_location_lists.sh"];
+	fetch_location_lists_sh -> maxmind_locationtable;
+
+	make_fiwalk_dfxml_sh [label="make_fiwalk_dfxml.sh"];
+	make_fiwalk_dfxml_sh -> diskimage;
+	make_fiwalk_dfxml_sh -> verify_disk_image_sh [style=dashed];
+
+	make_tsk_db_sh [label="make_tsk_db.sh"];
+	make_tsk_db_sh -> diskimage;
+	make_tsk_db_sh -> verify_disk_image_sh [style=dashed];
+
+	maxmind_blocktable [label="MaxMind Table\nBlockTable\n(IP block\nto location)" shape="rectangle"];
+
+	maxmind_locationtable [label="MaxMind Table\nLocationTable\n(Location names\nand latlongs)" shape="rectangle"];
+
+	reconstruct_http_headers_sh [label="reconstruct_http_headers.sh"];
+	reconstruct_http_headers_sh -> do_bulk_extractor_sh;
+
+	verify_disk_image_sh [label="verify_disk_image.sh"];
+	verify_disk_image_sh -> diskimage;
+
+	verify_fiwalk_dfxml_sh [label="verify_fiwalk_dfxml.sh"];
+	verify_fiwalk_dfxml_sh -> make_fiwalk_dfxml_sh;
+
+	verify_fiwalk_versus_tsk_db_sh [label="verify_fiwalk_versus_tsk_db.sh"];
+	verify_fiwalk_versus_tsk_db_sh -> make_tsk_db_sh;
+	verify_fiwalk_versus_tsk_db_sh -> verify_fiwalk_dfxml_sh;
+}

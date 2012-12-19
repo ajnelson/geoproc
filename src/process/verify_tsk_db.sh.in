@@ -1,0 +1,11 @@
+#!/bin/bash
+
+prefix=@prefix@
+pkgdatadir=@datadir@/@PACKAGE@
+
+outdir="$2"
+
+tskfile="${outdir/%verify_tsk_db.sh/make_tsk_db.sh}/tskout.db"
+
+cd "$outdir"
+python3 "${pkgdatadir}/python/verify_tsk_db.py" "$tskfile"

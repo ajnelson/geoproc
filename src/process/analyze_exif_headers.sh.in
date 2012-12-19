@@ -1,0 +1,28 @@
+#!/bin/bash
+
+prefix=@prefix@
+pkgdatadir=@datadir@/@PACKAGE@
+
+#One-liner c/o http://stackoverflow.com/a/246128/1207160
+SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+outdir="$2"
+
+db_annodir="${outdir/%analyze_exif_headers.sh/verify_fiwalk_versus_tsk_db.sh}"
+
+exif_file="${outdir/%analyze_exif_headers.sh/check_bulk_extractor.sh}/bulk_extractor.out/exif.txt"
+
+#Check anno dir exit status to see if we'll use optional annotation content
+echo "Debug: Checking status of Fiwalk+TSK database for annotation, \"${db_annodir}.status.log\"." >&2
+maybe_anno_db=
+if python3 "${pkgdatadir}/python/success.py" "${db_annodir}.status.log" ; then
+  maybe_anno_db="-a ${db_annodir}/tsk_fiwalk_anno.db"
+fi
+
+if [ ! -r "$exif_file" ]; then
+  echo "Error: Could not find Bulk Extractor EXIF output, $exif_file." >&2
+  exit 2
+fi
+
+cd "$outdir"
+python3 "${pkgdatadir}/python/analyze_exif_headers.py" --debug $maybe_anno_db "$exif_file" >"$outdir/exif.kml"

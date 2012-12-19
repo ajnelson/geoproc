@@ -1,0 +1,37 @@
+//Dependency graph of geoproc's Makefile
+digraph "geoproc.makefile"
+{
+	analyze_cookie_files_sh [label="analyze_cookie_files.sh"];
+	analyze_cookie_files_sh -> extract_cookie_files_sh;
+	analyze_cookie_files_sh -> maxmind_blocktable;
+	analyze_cookie_files_sh -> maxmind_locationtable;
+	analyze_cookie_files_sh -> verify_fiwalk_versus_tsk_db_sh [style=dashed];
+
+	diskimage [label="Disk image" shape="hexagon"];
+
+	extract_cookie_files_sh [label="extract_cookie_files.sh"];
+	extract_cookie_files_sh -> diskimage;
+	extract_cookie_files_sh -> verify_fiwalk_dfxml_sh;
+
+	make_fiwalk_dfxml_sh [label="make_fiwalk_dfxml.sh"];
+	make_fiwalk_dfxml_sh -> diskimage;
+	make_fiwalk_dfxml_sh -> verify_disk_image_sh [style=dashed];
+
+	make_tsk_db_sh [label="make_tsk_db.sh"];
+	make_tsk_db_sh -> diskimage;
+	make_tsk_db_sh -> verify_disk_image_sh [style=dashed];
+
+	maxmind_blocktable [label="MaxMind Table\nBlockTable\n(IP block\nto location)" shape="rectangle"];
+
+	maxmind_locationtable [label="MaxMind Table\nLocationTable\n(Location names\nand latlongs)" shape="rectangle"];
+
+	verify_disk_image_sh [label="verify_disk_image.sh"];
+	verify_disk_image_sh -> diskimage;
+
+	verify_fiwalk_dfxml_sh [label="verify_fiwalk_dfxml.sh"];
+	verify_fiwalk_dfxml_sh -> make_fiwalk_dfxml_sh;
+
+	verify_fiwalk_versus_tsk_db_sh [label="verify_fiwalk_versus_tsk_db.sh"];
+	verify_fiwalk_versus_tsk_db_sh -> make_tsk_db_sh;
+	verify_fiwalk_versus_tsk_db_sh -> verify_fiwalk_dfxml_sh;
+}

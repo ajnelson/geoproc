@@ -1,0 +1,30 @@
+#!/bin/bash
+
+if [ $# -lt 2 ]; then
+  echo "Usage: $0 <image> <out_directory>"
+  exit 1
+fi
+
+prefix=@prefix@
+pkgdatadir=@datadir@/@PACKAGE@
+
+outdir="$2"
+
+emailfiledir="${outdir/%analyze_email_files.sh/extract_email_files.sh}"
+
+bedir="${outdir/%analyze_email_files.sh/check_bulk_extractor.sh}/bulk_extractor.out"
+
+xmlfile="${outdir/%extract_email_files.sh/make_fiwalk_dfxml.sh}/fiout.xml"
+
+precisiondb=$geoproc_precision_db
+maybe_pdb=
+if [ -r "$precisiondb" ]; then
+  maybe_pdb="--precision_db $precisiondb"
+fi
+
+pushd "$outdir" >/dev/null
+python3 "${pkgdatadir}/python/make_kml.py" --debug $maybe_pdb --process_dir="$outdir/.." >all.kml && \
+python3 "${pkgdatadir}/python/make_kml.py" --debug --anonymize $maybe_pdb --process_dir="$outdir/.." >anonymized.kml
+rc=$?
+popd >/dev/null
+exit $rc

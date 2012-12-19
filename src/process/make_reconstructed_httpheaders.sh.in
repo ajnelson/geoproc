@@ -1,0 +1,19 @@
+#!/bin/bash
+
+prefix=@prefix@
+pkgdatadir=@datadir@/@PACKAGE@
+
+#One-liner c/o http://stackoverflow.com/a/246128/1207160
+SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+outdir="$2"
+
+#Note this pulls directly from do_bulk_extractor, not check_; check_ is not guaranteed to have the httpheader.txt output.
+bulk_extractor_output="${outdir/%make_reconstructed_httpheaders.sh/do_bulk_extractor.sh}/bulk_extractor.out"
+
+pushd "$outdir" >/dev/null
+python3 "${pkgdatadir}/python/sort_bulk_extractor_features.py" -o"sorted_input_httpheader.txt" "${bulk_extractor_output}/httpheader.txt" && \
+python3 "${pkgdatadir}/python/reconstruct.py" "sorted_input_httpheader.txt" >"reconstructed_httpheader.txt"
+rc=$?
+popd >/dev/null
+exit $rc

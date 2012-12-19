@@ -1,0 +1,105 @@
+
+#Usage: make IMAGE=(absolute path to image file) [TARGETSCRIPTS=(any script in this directory)] [RESULTSROOT=(absolute path to output root (the common results directory, not just for this image))]
+#Recall that ?= variables are conditionally assigned.
+#Also recall the | dependency operator: http://www.gnu.org/software/make/manual/make.html#index-prerequisite-types-140 (via <http://stackoverflow.com/questions/99132/how-to-check-if-a-directory-exists-in-a-makefile>)
+RESULTSROOT ?=$(HOME)/results/geoproc
+IMAGEOUTROOT := $(RESULTSROOT)$(IMAGE)
+MKDIRP := mkdir -p
+SHELL := /bin/bash
+
+prefix = @prefix@
+VCHEAD := @datadir@/@PACKAGE@/vchead
+geoproc_debug ?=0
+
+#This variable should basically list the frontier (the most-dependent) scripts of the graph
+TARGETSCRIPTS ?= \
+  make_kml.sh \
+  verify_tsk_db.sh
+TARGETS := $(addprefix $(IMAGEOUTROOT)/,$(TARGETSCRIPTS))
+
+.PHONY: clean check-env
+
+all: $(TARGETS)
+
+#Define dependency graph
+#Expected listing order: First dependency is script, other dependencies are input files.
+$(IMAGEOUTROOT)/analyze_cookie_files.sh: analyze_cookie_files.sh $(IMAGEOUTROOT)/verify_fiwalk_versus_tsk_db.sh $(IMAGEOUTROOT)/extract_cookie_files.sh $(IMAGEOUTROOT)/fetch_location_lists.sh
+
+$(IMAGEOUTROOT)/analyze_email_files.sh: analyze_email_files.sh $(IMAGEOUTROOT)/extract_email_files.sh $(IMAGEOUTROOT)/verify_fiwalk_versus_tsk_db.sh $(IMAGEOUTROOT)/check_bulk_extractor.sh
+
+$(IMAGEOUTROOT)/analyze_exif_headers.sh: analyze_exif_headers.sh $(IMAGEOUTROOT)/verify_fiwalk_versus_tsk_db.sh $(IMAGEOUTROOT)/check_bulk_extractor.sh
+
+$(IMAGEOUTROOT)/analyze_ipv4s.sh: analyze_ipv4s.sh $(IMAGEOUTROOT)/verify_fiwalk_versus_tsk_db.sh $(IMAGEOUTROOT)/check_bulk_extractor.sh
+
+$(IMAGEOUTROOT)/check_bulk_extractor.sh: check_bulk_extractor.sh $(IMAGEOUTROOT)/do_bulk_extractor.sh
+
+$(IMAGEOUTROOT)/do_bulk_extractor.sh: do_bulk_extractor.sh $(IMAGEOUTROOT)/verify_disk_image.sh
+
+$(IMAGEOUTROOT)/do_identify_filenames.sh: do_identify_filenames.sh $(IMAGEOUTROOT)/check_bulk_extractor.sh $(IMAGEOUTROOT)/make_fiwalk_dfxml.sh $(IMAGEOUTROOT)/verify_fiwalk_dfxml.sh
+
+$(IMAGEOUTROOT)/do_tcpflow_on_bulk_extractor_net.sh: do_tcpflow_on_bulk_extractor_net.sh $(IMAGEOUTROOT)/check_bulk_extractor.sh
+
+$(IMAGEOUTROOT)/extract_cookie_files.sh: extract_cookie_files.sh $(IMAGEOUTROOT)/verify_fiwalk_dfxml.sh
+
+$(IMAGEOUTROOT)/extract_email_files.sh: extract_email_files.sh $(IMAGEOUTROOT)/verify_fiwalk_dfxml.sh
+
+$(IMAGEOUTROOT)/fetch_location_lists.sh: fetch_location_lists.sh
+
+$(IMAGEOUTROOT)/make_fiwalk_dfxml.sh: make_fiwalk_dfxml.sh $(IMAGEOUTROOT)/verify_disk_image.sh
+
+$(IMAGEOUTROOT)/make_kml.sh: make_kml.sh $(IMAGEOUTROOT)/analyze_cookie_files.sh $(IMAGEOUTROOT)/analyze_email_files.sh $(IMAGEOUTROOT)/analyze_exif_headers.sh $(IMAGEOUTROOT)/analyze_ipv4s.sh
+
+$(IMAGEOUTROOT)/make_reconstructed_emailheaders.sh: make_reconstructed_emailheaders.sh $(IMAGEOUTROOT)/check_bulk_extractor.sh
+
+$(IMAGEOUTROOT)/make_reconstructed_httpheaders.sh: make_reconstructed_httpheaders.sh $(IMAGEOUTROOT)/do_bulk_extractor.sh $(IMAGEOUTROOT)/check_bulk_extractor.sh
+
+$(IMAGEOUTROOT)/make_tsk_db.sh: make_tsk_db.sh $(IMAGEOUTROOT)/verify_disk_image.sh
+
+$(IMAGEOUTROOT)/verify_disk_image.sh: verify_disk_image.sh
+
+$(IMAGEOUTROOT)/verify_fiwalk_dfxml.sh: verify_fiwalk_dfxml.sh $(IMAGEOUTROOT)/make_fiwalk_dfxml.sh
+
+$(IMAGEOUTROOT)/verify_fiwalk_versus_tsk_db.sh: verify_fiwalk_versus_tsk_db.sh $(IMAGEOUTROOT)/verify_fiwalk_dfxml.sh $(IMAGEOUTROOT)/make_tsk_db.sh
+
+#TODO Make this a dependency of verify_fiwalk_versus_tsk_db.sh after testing.
+$(IMAGEOUTROOT)/verify_tsk_db.sh: verify_tsk_db.sh $(IMAGEOUTROOT)/make_tsk_db.sh
+
+#Call processing script
+#Processing: Updates mtime of results directory if the directory already exists.  If the directory exists, but .status.log reports the process previously failed, process_script depots a placeholder with the try-again status code so Make can proceed.  If the directory doesn't exist, this rule runs the script with logging.
+#The idea is for any errors captured in .status.log and .err.log to be kept around until explicitly deleted.
+#Without the checks, previous logs get overwritten with useless content saying there's already output in the way.  Or, worse, we hit a potentially expensive garbage-in-garbage-out rule invocation.
+#Directory existence check and bash conditionals c/o: <http://stackoverflow.com/a/233014/1207160>
+#Also note that Bash variables need to be referenced with an escaped dollar sign, $$.  <http://stackoverflow.com/a/2373111/1207160>
+$(IMAGEOUTROOT)/%: | check-env outroot
+	@if [[ $(geoproc_debug) -eq 1 ]]; then echo geoproc.mk: Debug: Inputs are: $^ >&2; fi
+	@bash check_dependencies.sh "$(IMAGEOUTROOT)" $^ ; \
+	dependencies_status=$$?; \
+	[[ $(geoproc_debug) -eq 1 ]] && echo "geoproc.mk: Debug: dependencies_status = $$dependencies_status" >&2; \
+	if [[ -d "$(IMAGEOUTROOT)/$<" ]]; then \
+	  touch "$(IMAGEOUTROOT)/$<"; \
+	else \
+	  if [[ $$dependencies_status -ne 0 ]]; then \
+	    $(MKDIRP) "$(IMAGEOUTROOT)/$<" ; \
+	    echo "11">"$(IMAGEOUTROOT)/$<.status.log"; \
+	  else \
+	    $(MKDIRP) "$(IMAGEOUTROOT)/$<"; \
+	    cat $(VCHEAD) >"$(IMAGEOUTROOT)/$<.version.log"; \
+	    touch "$(IMAGEOUTROOT)/$<.status.log"; \
+	    bash "`pwd`/$<" "$(IMAGE)" "$(IMAGEOUTROOT)/$<" >"$(IMAGEOUTROOT)/$<.out.log" 2>"$(IMAGEOUTROOT)/$<.err.log"; \
+	    status=$$?; \
+	    echo "$$status" >"$(IMAGEOUTROOT)/$<.status.log"; \
+	  fi \
+	fi
+
+outroot:
+	@ $(MKDIRP) "$(IMAGEOUTROOT)"
+
+#Set a rule to require environment variables.
+#http://stackoverflow.com/a/4731504/1207160
+check-env:
+ifndef IMAGE
+	$(error "IMAGE is undefined.")
+endif
+
+clean: check-env
+	@ echo "Not cleaning yet..."

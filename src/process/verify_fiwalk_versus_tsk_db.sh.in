@@ -1,0 +1,21 @@
+#!/bin/bash
+
+if [ $# -lt 2 ]; then
+  echo "Usage: $0 <image> <out_directory>"
+  exit 1
+fi
+
+prefix=@prefix@
+pkgdatadir=@datadir@/@PACKAGE@
+
+outdir="$2"
+
+xmlfile="${outdir/%verify_fiwalk_versus_tsk_db.sh/make_fiwalk_dfxml.sh}/fiout.xml"
+
+tskfile="${outdir/%verify_fiwalk_versus_tsk_db.sh/make_tsk_db.sh}/tskout.db"
+
+cd "$outdir"
+#Soft-link input files here for ease of later Python scripts that join data
+ln -s "$xmlfile" && \
+ln -s "$tskfile" && \
+python3 "${pkgdatadir}/python/verify_fiwalk_versus_tsk_db.py" --verbose "$xmlfile" "$tskfile" "tsk_fiwalk_anno.db"

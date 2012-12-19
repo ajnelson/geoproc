@@ -1,0 +1,37 @@
+#!/bin/bash
+
+#After this script is executed, there is a file:
+# manifest.txt
+# Which contains a list of files fit for processing with Python's 'email' module
+
+if [ $# -lt 2 ]; then
+  echo "Usage: $0 <image> <out_directory>"
+  exit 1
+fi
+
+prefix=@prefix@
+pkgdatadir=@datadir@/@PACKAGE@
+
+#One-liner c/o http://stackoverflow.com/a/246128/1207160
+SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+outdir="$2"
+
+emailfiledir="${outdir/%analyze_email_files.sh/extract_email_files.sh}"
+
+#Check anno dir exit status to see if we'll use optional annotation content
+db_annodir="${outdir/%analyze_email_files.sh/verify_fiwalk_versus_tsk_db.sh}"
+echo "Debug: Checking status of Fiwalk+TSK database for annotation, \"${db_annodir}.status.log\"." >&2
+maybe_anno_db=
+if python3 "${pkgdatadir}/python/success.py" "${db_annodir}.status.log" ; then
+  maybe_anno_db="-a ${db_annodir}/tsk_fiwalk_anno.db"
+fi
+
+beprocdir="${outdir/%analyze_email_files.sh/check_bulk_extractor.sh}"
+echo "Debug: Checking status of Bulk Extractor, \"${beprocdir}.status.log\"." >&2
+maybe_bedir=
+if python3 "${pkgdatadir}/python/success.py" "${db_annodir}.status.log" ; then
+  maybe_bedir="-b ${beprocdir}/bulk_extractor.out"
+fi
+
+python3 "${pkgdatadir}/python/analyze_email_files.py" --debug $maybe_anno_db $maybe_bedir "$emailfiledir" "$outdir"

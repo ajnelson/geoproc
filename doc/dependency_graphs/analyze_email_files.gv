@@ -1,0 +1,46 @@
+//Dependency graph of geoproc's Makefile
+digraph "geoproc.makefile"
+{
+	analyze_email_files_sh [label="analyze_email_files.sh"];
+	analyze_email_files_sh -> check_bulk_extractor_sh [style=dashed];
+	analyze_email_files_sh -> extract_email_files_sh;
+	analyze_email_files_sh -> maxmind_blocktable;
+	analyze_email_files_sh -> maxmind_locationtable;
+	analyze_email_files_sh -> verify_fiwalk_versus_tsk_db_sh [style=dashed];
+
+	check_bulk_extractor_sh [label="check_bulk_extractor.sh"];
+	check_bulk_extractor_sh -> diskimage;
+	check_bulk_extractor_sh -> do_bulk_extractor_sh [style=dashed];
+
+	diskimage [label="Disk image" shape="hexagon"];
+
+	do_bulk_extractor_sh [label="do_bulk_extractor.sh"];
+	do_bulk_extractor_sh -> diskimage;
+	do_bulk_extractor_sh -> verify_disk_image_sh [style=dashed];
+
+	extract_email_files_sh [label="extract_email_files.sh"];
+	extract_email_files_sh -> diskimage;
+	extract_email_files_sh -> verify_fiwalk_dfxml_sh;
+
+	make_fiwalk_dfxml_sh [label="make_fiwalk_dfxml.sh"];
+	make_fiwalk_dfxml_sh -> diskimage;
+	make_fiwalk_dfxml_sh -> verify_disk_image_sh [style=dashed];
+
+	make_tsk_db_sh [label="make_tsk_db.sh"];
+	make_tsk_db_sh -> diskimage;
+	make_tsk_db_sh -> verify_disk_image_sh [style=dashed];
+
+	maxmind_blocktable [label="MaxMind Table\nBlockTable\n(IP block\nto location)" shape="rectangle"];
+
+	maxmind_locationtable [label="MaxMind Table\nLocationTable\n(Location names\nand latlongs)" shape="rectangle"];
+
+	verify_disk_image_sh [label="verify_disk_image.sh"];
+	verify_disk_image_sh -> diskimage;
+
+	verify_fiwalk_dfxml_sh [label="verify_fiwalk_dfxml.sh"];
+	verify_fiwalk_dfxml_sh -> make_fiwalk_dfxml_sh;
+
+	verify_fiwalk_versus_tsk_db_sh [label="verify_fiwalk_versus_tsk_db.sh"];
+	verify_fiwalk_versus_tsk_db_sh -> make_tsk_db_sh;
+	verify_fiwalk_versus_tsk_db_sh -> verify_fiwalk_dfxml_sh;
+}

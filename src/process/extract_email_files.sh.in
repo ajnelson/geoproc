@@ -1,0 +1,63 @@
+#!/bin/bash
+
+#After this script is executed, there is a file:
+# manifest.txt
+# Which contains a list of files fit for processing with Python's 'email' module
+
+if [ $# -lt 2 ]; then
+  echo "Usage: $0 <image> <out_directory>"
+  exit 1
+fi
+
+prefix=@prefix@
+pkgdatadir=@datadir@/@PACKAGE@
+
+#One-liner c/o http://stackoverflow.com/a/246128/1207160
+SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+outdir="$2"
+
+xmlfile="${outdir/%extract_email_files.sh/make_fiwalk_dfxml.sh}/fiout.xml"
+
+#TODO: Add output directory parameter to extraction script
+cd $outdir; python3 "${pkgdatadir}/python/extract_email_files.py" --debug -x"$xmlfile" "$1" >"$outdir/manifest_extract_files.txt"
+
+extract_status=$?
+if [ $extract_status -ne 0 ]; then
+  echo "extract_email_files.py exited with status $extract_status" >&2
+  exit $extract_status
+fi
+
+#Prevent for-loops from interpreting spaces in path names as new input lines
+#Tip c/o http://www.cyberciti.biz/tips/handling-filenames-with-spaces-in-bash.html
+SAVEIFS=$IFS
+IFS=$(echo -en "\n\b")
+
+#Start successful mbox output manifest (appended to later)
+rm -f "$outdir/manifest.txt"
+touch "$outdir/manifest.txt"
+
+#TODO see if 'mbox' extension occurs naturally in corpora
+for ftype in mbox dbx mbs; do
+  for m in $(grep -i ".${ftype}[[:space:]]" "$outdir/manifest_extract_files.txt"); do
+    echo "$outdir/$m" >>"$outdir/manifest.txt"
+  done
+done
+
+#End reset of IFS
+IFS=$SAVEIFS
+
+#Normalizing output: process all PST files with readpst
+for pstfile in $(grep -i '.pst[[:space:]]' "$outdir/manifest_extract_files.txt" | cut -f 1); do
+  pstout="$outdir/$pstfile.readpst"
+  mkdir -p "$pstout"
+  readpst -V >"$pstout.version.log"
+  touch "$pstout.status.log"
+  readpst -o "$pstout" -D -r "$pstfile" >"$pstout.out.log" 2>"$pstout.err.log"
+  rc=$?
+  echo $rc >"$pstout.status.log"
+  #Append to manifest of successful mbox extractions
+  if [ $rc -eq 0 ]; then
+    echo "$pstout" >>"$outdir/manifest.txt"
+  fi
+done

@@ -1,0 +1,144 @@
+cfreds-basicmac.e01	US	MD		
+cfreds-russian.E01	US	MD		
+cfreds-tearoom.E01	US	MD		
+dfrws-2005-rodeo.aff	US	LA	New Orleans	
+dfrws-2009-challenge-jhuisi-linux-side-fs	US	MD	Baltimore	
+dfrws-2009-challenge-nssal-linux-side-fs	US	LA	New Orleans	
+dfrws-2009-challenge-nssal-physicalmem	US	LA	New Orleans	
+dfrws-2009-challenge-nssal-thumb-fs	US	LA	New Orleans	
+dfrws-2011-challenge-norby-mtdblock0-_config.aff	US	PA	Pittsburgh	
+dfrws-2011-challenge-norby-mtdblock0-_config.aff	US	PA	Imperial	
+dfrws-2011-challenge-norby-mtdblock1.aff	US	PA	Pittsburgh	
+dfrws-2011-challenge-norby-mtdblock1.aff	US	PA	Imperial	
+dfrws-2011-challenge-norby-mtdblock3-recovery.aff	US	PA	Pittsburgh	
+dfrws-2011-challenge-norby-mtdblock3-recovery.aff	US	PA	Imperial	
+dfrws-2011-challenge-norby-mtdblock4-_system.aff	US	PA	Pittsburgh	
+dfrws-2011-challenge-norby-mtdblock4-_system.aff	US	PA	Imperial	
+dfrws-2011-challenge-norby-mtdblock5-_cache.aff	US	PA	Pittsburgh	
+dfrws-2011-challenge-norby-mtdblock5-_cache.aff	US	PA	Imperial	
+dfrws-2011-challenge-norby-mtdblock6-_data.aff	US	PA	Pittsburgh	
+dfrws-2011-challenge-norby-mtdblock6-_data.aff	US	PA	Imperial	
+dfrws-2011-challenge-norby-mtdblock7-kernelpanic.aff	US	PA	Pittsburgh	
+dfrws-2011-challenge-norby-mtdblock7-kernelpanic.aff	US	PA	Imperial	
+dfrws-2011-challenge-norby-sdcard.aff	US	PA	Pittsburgh	
+dfrws-2011-challenge-norby-sdcard.aff	US	PA	Imperial	
+dfrws-2011-challenge-taog-mtd0-mbm.aff	US	PA	Pittsburgh	
+dfrws-2011-challenge-taog-mtd0-mbm.aff	US	PA	Imperial	
+dfrws-2011-challenge-taog-mtd1-cdt.aff	US	PA	Pittsburgh	
+dfrws-2011-challenge-taog-mtd1-cdt.aff	US	PA	Imperial	
+dfrws-2011-challenge-taog-mtd2-lbl.aff	US	PA	Pittsburgh	
+dfrws-2011-challenge-taog-mtd2-lbl.aff	US	PA	Imperial	
+dfrws-2011-challenge-taog-mtd3-misc.aff	US	PA	Pittsburgh	
+dfrws-2011-challenge-taog-mtd3-misc.aff	US	PA	Imperial	
+dfrws-2011-challenge-taog-mtd4-boot.aff	US	PA	Pittsburgh	
+dfrws-2011-challenge-taog-mtd4-boot.aff	US	PA	Imperial	
+dfrws-2011-challenge-taog-mtd5-recovery.aff	US	PA	Pittsburgh	
+dfrws-2011-challenge-taog-mtd5-recovery.aff	US	PA	Imperial	
+dfrws-2011-challenge-taog-mtd6-system.aff	US	PA	Pittsburgh	
+dfrws-2011-challenge-taog-mtd6-system.aff	US	PA	Imperial	
+dfrws-2011-challenge-taog-mtd7-cache.aff	US	PA	Pittsburgh	
+dfrws-2011-challenge-taog-mtd7-cache.aff	US	PA	Imperial	
+dfrws-2011-challenge-taog-mtd8-userdata.aff	US	PA	Pittsburgh	
+dfrws-2011-challenge-taog-mtd8-userdata.aff	US	PA	Imperial	
+dfrws-2011-challenge-taog-mtd9-kernelpanic.aff	US	PA	Pittsburgh	
+dfrws-2011-challenge-taog-mtd9-kernelpanic.aff	US	PA	Imperial	
+dfrws-2011-challenge-taog-sdcard.aff	US	PA	Pittsburgh	
+dfrws-2011-challenge-taog-sdcard.aff	US	PA	Imperial	
+honeynet-forensic-challenge01-hda1-_boot.aff	US	IL	Chicago	
+honeynet-forensic-challenge01-hda5-_usr.aff	US	IL	Chicago	
+honeynet-forensic-challenge01-hda6-_home.aff	US	IL	Chicago	
+honeynet-forensic-challenge01-hda7-_var.aff	US	IL	Chicago	
+honeynet-forensic-challenge01-hda8-_.aff	US	IL	Chicago	
+honeynet-forensic-challenge01-hda9-swap.aff	US	IL	Chicago	
+m57-charlie-2009-12-11-work-usb.aff	US	CA	Monterey	93943
+m57-jo-2009-12-11-favorites-usb.aff	US	CA	Monterey	93943
+m57-jo-2009-12-11-work-usb.aff	US	CA	Monterey	93943
+m57-redacted-charlie-2009-11-12.aff	US	CA	Monterey	93943
+m57-redacted-charlie-2009-11-12start.aff	US	CA	Monterey	93943
+m57-redacted-charlie-2009-11-16.aff	US	CA	Monterey	93943
+m57-redacted-charlie-2009-11-17.aff	US	CA	Monterey	93943
+m57-redacted-charlie-2009-11-18.aff	US	CA	Monterey	93943
+m57-redacted-charlie-2009-11-19.aff	US	CA	Monterey	93943
+m57-redacted-charlie-2009-11-20.aff	US	CA	Monterey	93943
+m57-redacted-charlie-2009-11-23.aff	US	CA	Monterey	93943
+m57-redacted-charlie-2009-11-24.aff	US	CA	Monterey	93943
+m57-redacted-charlie-2009-11-30.aff	US	CA	Monterey	93943
+m57-redacted-charlie-2009-12-01.aff	US	CA	Monterey	93943
+m57-redacted-charlie-2009-12-02.aff	US	CA	Monterey	93943
+m57-redacted-charlie-2009-12-03.aff	US	CA	Monterey	93943
+m57-redacted-charlie-2009-12-04.aff	US	CA	Monterey	93943
+m57-redacted-charlie-2009-12-07.aff	US	CA	Monterey	93943
+m57-redacted-charlie-2009-12-08.aff	US	CA	Monterey	93943
+m57-redacted-charlie-2009-12-09.aff	US	CA	Monterey	93943
+m57-redacted-charlie-2009-12-10.aff	US	CA	Monterey	93943
+m57-redacted-charlie-2009-12-11.aff	US	CA	Monterey	93943
+m57-redacted-jean.E01	US	CA	Monterey	93943
+m57-redacted-jo-2009-11-12.aff	US	CA	Monterey	93943
+m57-redacted-jo-2009-11-12start.aff	US	CA	Monterey	93943
+m57-redacted-jo-2009-11-16.aff	US	CA	Monterey	93943
+m57-redacted-jo-2009-11-17.aff	US	CA	Monterey	93943
+m57-redacted-jo-2009-11-18.aff	US	CA	Monterey	93943
+m57-redacted-jo-2009-11-19.aff	US	CA	Monterey	93943
+m57-redacted-jo-2009-11-20-newComputer.aff	US	CA	Monterey	93943
+m57-redacted-jo-2009-11-20-oldComputer.aff	US	CA	Monterey	93943
+m57-redacted-jo-2009-11-23.aff	US	CA	Monterey	93943
+m57-redacted-jo-2009-11-24.aff	US	CA	Monterey	93943
+m57-redacted-jo-2009-11-30.aff	US	CA	Monterey	93943
+m57-redacted-jo-2009-12-01.aff	US	CA	Monterey	93943
+m57-redacted-jo-2009-12-02.aff	US	CA	Monterey	93943
+m57-redacted-jo-2009-12-03.aff	US	CA	Monterey	93943
+m57-redacted-jo-2009-12-04.aff	US	CA	Monterey	93943
+m57-redacted-jo-2009-12-07.aff	US	CA	Monterey	93943
+m57-redacted-jo-2009-12-08.aff	US	CA	Monterey	93943
+m57-redacted-jo-2009-12-09.aff	US	CA	Monterey	93943
+m57-redacted-jo-2009-12-10.aff	US	CA	Monterey	93943
+m57-redacted-jo-2009-12-11-001.aff	US	CA	Monterey	93943
+m57-redacted-jo-2009-12-11-002.aff	US	CA	Monterey	93943
+m57-redacted-pat-2009-11-12.aff	US	CA	Monterey	93943
+m57-redacted-pat-2009-11-12start.aff	US	CA	Monterey	93943
+m57-redacted-pat-2009-11-16.aff	US	CA	Monterey	93943
+m57-redacted-pat-2009-11-17.aff	US	CA	Monterey	93943
+m57-redacted-pat-2009-11-18.aff	US	CA	Monterey	93943
+m57-redacted-pat-2009-11-19.aff	US	CA	Monterey	93943
+m57-redacted-pat-2009-11-20.aff	US	CA	Monterey	93943
+m57-redacted-pat-2009-11-23.aff	US	CA	Monterey	93943
+m57-redacted-pat-2009-11-24.aff	US	CA	Monterey	93943
+m57-redacted-pat-2009-11-30.aff	US	CA	Monterey	93943
+m57-redacted-pat-2009-12-01.aff	US	CA	Monterey	93943
+m57-redacted-pat-2009-12-02.aff	US	CA	Monterey	93943
+m57-redacted-pat-2009-12-03.aff	US	CA	Monterey	93943
+m57-redacted-pat-2009-12-04.aff	US	CA	Monterey	93943
+m57-redacted-pat-2009-12-07.aff	US	CA	Monterey	93943
+m57-redacted-pat-2009-12-08.aff	US	CA	Monterey	93943
+m57-redacted-pat-2009-12-09.aff	US	CA	Monterey	93943
+m57-redacted-pat-2009-12-10.aff	US	CA	Monterey	93943
+m57-redacted-pat-2009-12-11.aff	US	CA	Monterey	93943
+m57-redacted-terry-2009-11-12.aff	US	CA	Monterey	93943
+m57-redacted-terry-2009-11-12start.aff	US	CA	Monterey	93943
+m57-redacted-terry-2009-11-16.aff	US	CA	Monterey	93943
+m57-redacted-terry-2009-11-17.aff	US	CA	Monterey	93943
+m57-redacted-terry-2009-11-18.aff	US	CA	Monterey	93943
+m57-redacted-terry-2009-11-19.aff	US	CA	Monterey	93943
+m57-redacted-terry-2009-11-20.aff	US	CA	Monterey	93943
+m57-redacted-terry-2009-11-23.aff	US	CA	Monterey	93943
+m57-redacted-terry-2009-11-24.aff	US	CA	Monterey	93943
+m57-redacted-terry-2009-11-30.aff	US	CA	Monterey	93943
+m57-redacted-terry-2009-12-01.aff	US	CA	Monterey	93943
+m57-redacted-terry-2009-12-02.aff	US	CA	Monterey	93943
+m57-redacted-terry-2009-12-03.aff	US	CA	Monterey	93943
+m57-redacted-terry-2009-12-04.aff	US	CA	Monterey	93943
+m57-redacted-terry-2009-12-07.aff	US	CA	Monterey	93943
+m57-redacted-terry-2009-12-08.aff	US	CA	Monterey	93943
+m57-redacted-terry-2009-12-09.aff	US	CA	Monterey	93943
+m57-redacted-terry-2009-12-10.aff	US	CA	Monterey	93943
+m57-redacted-terry-2009-12-11-001.aff	US	CA	Monterey	93943
+m57-redacted-terry-2009-12-11-002.aff	US	CA	Monterey	93943
+m57-terry-2009-12-11-work-usb.aff	US	CA	Monterey	93943
+nps-2009-domexusers.aff	US	CA	Monterey	93943
+nps-2010-emails.aff	US	VA	Arlington	
+tapeworm_1.0.20120930.aff	US	VT	Burlington	05401
+ucsc-anhp_TIME0.aff	US	MD	Gaithersburg	20879
+ucsc-anhp_TIME1.aff	US	MD	Gaithersburg	20879
+ucsc-sheltered-vm1.aff	US	WI		
+ucsc-sheltered-vm2.aff	US	WI		
+ucsc-sheltered-vm3.aff	US	WI		

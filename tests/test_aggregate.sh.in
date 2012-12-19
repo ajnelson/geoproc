@@ -1,0 +1,10 @@
+#!/bin/bash
+
+set -x
+
+top_srcdir=@top_srcdir@
+pyscript=${top_srcdir}/python/aggregate.py
+
+for p in python python3; do
+  "$p" "$pyscript" --regress || exit 1
+done

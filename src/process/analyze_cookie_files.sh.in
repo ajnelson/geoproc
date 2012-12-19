@@ -1,0 +1,37 @@
+#!/bin/bash
+
+if [ $# -lt 2 ]; then
+  echo "Usage: $0 <image> <out_directory>"
+  exit 1
+fi
+
+prefix=@prefix@
+pkgdatadir=@datadir@/@PACKAGE@
+
+outdir="$2"
+
+#Get cookie dump directory
+cookiedir="${outdir/%analyze_cookie_files.sh/extract_cookie_files.sh}"
+
+#Get cities file for filtering
+cities_file="${outdir/%analyze_cookie_files.sh/fetch_location_lists.sh}/distinct_city.txt"
+
+#Check anno dir exit status to see if we'll use optional annotation content
+db_annodir="${outdir/%analyze_cookie_files.sh/verify_fiwalk_versus_tsk_db.sh}"
+echo "Debug: Checking status of Fiwalk+TSK database for annotation, \"${db_annodir}.status.log\"." >&2
+maybe_anno_db=
+if python3 "${pkgdatadir}/python/success.py" "${db_annodir}.status.log" ; then
+  maybe_anno_db="-a ${db_annodir}/tsk_fiwalk_anno.db"
+fi
+
+echo "Debug: \$1 = ${1}">&2
+echo "Debug: \$cities_file = ${cities_file}">&2
+echo "Debug: \$cookiedir = ${cookiedir}">&2
+echo "Debug: \$outdir = ${outdir}">&2
+
+#Filter cities file down to the cities found in the cookie files
+find "${cookiedir}" -name '*txt' -print | xargs cat | fgrep --only-matching -i --file="${cities_file}" >"${outdir}/found_cities.txt"
+sort "${outdir}/found_cities.txt" | uniq -c >"${outdir}/found_city_tallies.txt"
+sort "${outdir}/found_cities.txt" | uniq >"${outdir}/distinct_found_cities.txt"
+
+python3 "${pkgdatadir}/python/analyze_cookie_files.py" --debug $maybe_anno_db "${outdir}/distinct_found_cities.txt" "$cookiedir" "$outdir"

@@ -1,0 +1,332 @@
+#!/bin/bash
+
+#Define autotool variables
+GNU_GETOPT=@GNU_GETOPT@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+bindir=@bindir@
+#pkgdatadir macro variable isn't resolving for some reason...
+pkgdatadir=@datadir@/@PACKAGE@
+
+get_abspath() {
+  python3 -c 'import os,sys; print(os.path.abspath(os.path.expanduser(sys.argv[1])))' "$1"
+}
+
+#Set up usage string
+
+usage="Usage: geoproc.sh process [options] input_file\n"
+usage=$usage"Input file should be a disk image that Fiwalk and Bulk Extractor are configured to recognize (e.g. E01, AFF, raw dd).\n"
+usage=$usage"\n"
+usage=$usage"To configure, copy \"${pkgdatadir}/geoproc.cfg\" to your home directory and modify the values as you wish.\n"
+usage=$usage"\n"
+usage=$usage"Options:\n"
+usage=$usage"\t-h, --help\n"
+usage=$usage"\t  Print help (this message) and exit.\n"
+usage=$usage"\t-d, --debug\n"
+usage=$usage"\t  Enable debug output (writes to stderr).\n"
+usage=$usage"\t-o, --output = dir\n"
+usage=$usage"\t  Specify root directory of output.  Defaults to \$PWD/results.  The input file's results will be written output/abs_path_to_input_file.\n"
+usage=$usage"\t-t, --target-script = geoproc-component-script\n"
+usage=$usage"\t  Target script must be a script in the ${pkgdatadir}/process directory.\n"
+usage=$usage"\n"
+usage=$usage"\t-p, --precision-db = precision.db\n"
+usage=$usage"\t  Supply this database file of precision of votes with particular characteristics.\n"
+usage=$usage"\n"
+usage=$usage"Some of the initial processing for geoproc's analysis is expensive.  The following options can import (copy) previously-imported results.  No accompanying logs will be imported, and the .out, .err and .status logs will reflect the importing 'cp' process.\n"
+usage=$usage"You can also bootstrap the initial Bulk Extractor, Fiwalk and TSK DB output from a previous run of geoproc.  If you supply this and another import option, the other import option will take precedence.  You would use the other options in case you had run one of the utilities outside of the geoproc framework.\n"
+usage=$usage"If you know ahead of time that content not imported with any of the --import-* rules will fail, or if you want to run with only what you've imported, issue --skip-absentees to keep from re-running the unspecified three processes."
+usage=$usage"\n"
+usage=$usage"\t--import-geoproc-root = prior_geoproc_output_root_dir\n"
+usage=$usage"\t--skip-absentees\n"
+usage=$usage"\t--import-bulk_extractor = bulk_extractor_output_dir\n"
+usage=$usage"\t--import-fiwalk = fiout.xml\n"
+usage=$usage"\t--import-tskdb = tsk_loaddb.db\n"
+
+
+usage() {
+  printf "$usage" >&2
+}
+
+#Canonicalize command-line options with GNU getopt
+#  BSD getopt (default on OS X) does not behave correctly <http://stackoverflow.com/a/7948533/1207160>.
+if ! options=$(${GNU_GETOPT} -o hdo:t:p: -l help,debug,output:,target-script:,precision-db:,import-geoproc-root:,skip-absentees,import-bulk_extractor:,import-fiwalk:,import-tskdb: -- "$@"); then
+# Something went wrong; getopt should report what.
+exit 1
+fi
+eval set -- "$options"
+
+debug=0
+outroot=$PWD/results
+targetscript=
+precisiondb=
+import_geoproc_root=
+import_be=
+import_fiout=
+import_tskdb=
+skip_absentees=0
+import_requested=0
+
+#Handle command-line arguments and options
+while [ $# -ge 1 ]; do
+  case $1 in
+    -d | --debug )
+      debug=1
+      ;;
+    -h | --help )
+      usage
+      exit 0
+      ;;
+    -o | --output )
+      outroot=$2
+      if [ -e "$outroot" -a ! -d "$outroot" ]; then
+        echo "geoproc_process.sh: Error: Specified output directory (supplied to $1) is not a directory." >&2
+        exit 1
+      fi
+      shift
+      ;;
+    -t | --target-script )
+      targetscript=$2
+      if [ ! -f "${pkgdatadir}/process/$targetscript" ]; then
+        echo "geoproc_process.sh: Error: Target script must be a script in the ${pkgdatadir}/process directory." >&2
+        exit 1
+      fi
+      shift
+      ;;
+    -p | --precision-db )
+      precisiondb=$(get_abspath "$2")
+      if [ ! -r "$precisiondb" ]; then
+        echo "geoproc_process.sh: Error: Precision database (supplied to $1) is not a readable file." >&2
+        exit 1
+      fi
+      shift
+      ;;
+    --import-geoproc-root )
+      import_geoproc_root=$(get_abspath "$2")
+      if [ ! -d "$import_geoproc_root" ]; then
+        echo "geoproc_process.sh: Error: Prior geoproc root (supplied to $1) is not a directory." >&2
+        printf "\tChecked path: ${import_geoproc_root}\n" >&2
+        exit 1
+      fi
+      shift
+      import_requested=1
+      ;;
+    --skip-absentees )
+      skip_absentees=1
+      ;;
+    --import-bulk_extractor )
+      import_be=$(get_abspath "$2")
+      if [ ! -r "${import_be}/report.xml" ]; then
+        echo "geoproc_process.sh: Error: Bulk Extractor output (supplied to $1) does not contain 'report.xml'." >&2
+        printf "\tChecked path: ${import_be}\n" >&2
+        exit 1
+      fi
+      shift
+      import_requested=1
+      ;;
+    --import-fiwalk )
+      import_fiout=$(get_abspath "$2")
+      if [ ! -r "$import_fiout" ]; then
+        echo "geoproc_process.sh: Error: Fiwalk output (supplied to $1) is not a readable file." >&2
+        printf "\tChecked path: ${import_fiout}\n" >&2
+        exit 1
+      fi
+      shift
+      import_requested=1
+      ;;
+    --import-tskdb )
+      import_tskdb=$(get_abspath "$2")
+      if [ ! -r "$import_tskdb" ]; then
+        echo "geoproc_process.sh: Error: TSK DB output (supplied to $1) is not a readable file." >&2
+        printf "\tChecked path: ${import_tskdb}\n" >&2
+        exit 1
+      fi
+      shift
+      import_requested=1
+      ;;
+    -- )
+      shift
+      break
+      ;;
+    * )
+      echo "geoproc_process.sh: Error: Unexpected command-line argument ($1)." >&2
+      echo >&2
+      usage
+      exit 1
+  esac
+  shift
+done
+
+
+#Enforce required arguments
+if [ $# -ne 1 ]; then
+  usage
+  exit 1
+fi
+
+IMAGE=$(get_abspath "$1")
+if [ -z "$IMAGE" ]; then
+  echo "geoproc_process.sh: Error: malformed command line: Couldn't get path of image argument.  See usage (invoke geoproc.sh without arguments)." >&2
+  exit 1
+elif [ ! -r "$IMAGE" ]; then
+  echo "geoproc_process.sh: Error: Disk image is not a readable file." >&2
+  exit 1
+fi
+
+
+RESULTSROOT=$(get_abspath "$outroot")
+if [ -z "$RESULTSROOT" ]; then
+  echo "geoproc_process.sh: Error: Couldn't get path of output-root argument.  See usage (invoke geoproc.sh without arguments)." >&2
+  exit 1
+fi
+
+if [ "$import_geoproc_root" == "$RESULTSROOT" ]; then
+  echo "geoproc_process.sh: Error: The new output directory is the same as the data import directory.  These should be different.  Aborting."
+  exit 1
+fi
+
+#Specify geoproc output directory for the specified image
+outdir=$RESULTSROOT$IMAGE
+
+#If we have old whole-geoproc output, check it
+if [ ! -z "$import_geoproc_root" ]; then
+  import_outdir=${import_geoproc_root}$IMAGE
+  [ $debug -eq 0 ] || printf "geoproc.sh: Debug: Looking for imports from this directory:\n\t$import_outdir\n" >&2
+  if [ -z "$import_be" ]; then
+    if [ -r "${import_outdir}/do_bulk_extractor.sh.status.log" ] && \
+      python3 "${pkgdatadir}/python/success.py" "${import_outdir}/do_bulk_extractor.sh.status.log" ; then
+      import_be=${import_outdir}/do_bulk_extractor.sh/bulk_extractor.out
+    else
+      echo "geoproc_process.sh: Note: No successful Bulk Extractor output found in imported geoproc directory." >&2
+    fi
+  fi
+  if [ -z "$import_fiout" ]; then
+    if [ -r "${import_outdir}/make_fiwalk_dfxml.sh.status.log" ] && \
+      python3 "${pkgdatadir}/python/success.py" "${import_outdir}/make_fiwalk_dfxml.sh.status.log" ; then
+      import_fiout=${import_outdir}/make_fiwalk_dfxml.sh/fiout.xml
+    else
+      echo "geoproc_process.sh: Note: No successful Fiwalk output found in imported geoproc directory." >&2
+    fi
+  fi
+  if [ -z "$import_tskdb" ]; then
+    if [ -r "${import_outdir}/make_tsk_db.sh.status.log" ] && \
+      python3 "${pkgdatadir}/python/success.py" "${import_outdir}/make_tsk_db.sh.status.log" ; then
+      import_tskdb=${import_outdir}/make_tsk_db.sh/tskout.db
+    else
+      echo "geoproc_process.sh: Note: No successful tsk_loaddb output found in imported geoproc directory." >&2
+    fi
+  fi
+fi
+
+#Check whether imported prior output would clobber what's already in the output directory
+beout=$outdir/do_bulk_extractor.sh/bulk_extractor.out
+if [ ! -z "$import_be" ]; then
+  if [ -r "$beout/report.xml" ]; then
+    echo "geoproc_process.sh: Warning: Bulk Extractor output '$beout' already present. Ignoring import parameter." >&2
+    import_be=
+  fi
+fi
+
+fiout=$outdir/make_fiwalk_dfxml.sh/fiout.xml
+if [ ! -z "$import_fiout" ]; then
+  if [ -r "$fiout" ]; then
+    echo "geoproc_process.sh: Warning: Fiwalk output '$fiout' already present. Ignoring import parameter." >&2
+    import_fiout=
+  fi
+fi
+
+tskdb=$outdir/make_tsk_db.sh/tskout.db
+if [ ! -z "$import_tskdb" ]; then
+  if [ -r "$tskdb" ]; then
+    echo "geoproc_process.sh: Warning: tsk_loaddb output '$tskdb' already present. Ignoring import parameter." >&2
+    import_tskdb=
+  fi
+fi
+
+
+#Now, start affecting the file system.
+
+#Ensure existence of output directory
+mkdir -p "$outdir"
+
+#Remove the try-again scripts
+if [ -d "$outdir" ]; then
+  #As this is a scripted rm with some degree of wildcarding, change directories, just in case.
+  pushd "$outdir" >/dev/null
+  if [ $(ls *.status.log 2>/dev/null | wc -l) -gt 0 ]; then
+    for statlog in $(grep --files-with-match '^11$' "$outdir"/*.status.log); do
+      [ $debug -eq 0 ] || echo "geoproc_process.sh: Debug: Removing to re-attempt ${statlog/%.status.log/}" >&2
+      rm -r "${statlog/%.status.log/}"{,.status.log}
+    done
+  fi
+  popd >/dev/null
+fi
+
+#Copy in prior output if specified
+import_prior() {
+  [ $debug -eq 0 ] || printf "geoproc.sh: Debug: Running import_prior with arguments:\n\t$1\n\t$2\n" >&2
+  priorout=$1
+  scriptoutdir=$2
+  mkdir -p "$scriptoutdir"
+  cp -pr "$priorout" "${scriptoutdir}/" >${scriptoutdir}.out.log 2>${scriptoutdir}.err.log
+  rc=$?
+  if [ $rc -eq 0 ]; then
+    echo "imported" >${scriptoutdir}.status.log
+  else
+    echo $rc >${scriptoutdir}.status.log
+  fi
+}
+maybe_simulate_failure() {
+  #Checks for output; if absent, creates a dummy output directory and marks the process skipped.
+  if [ -d "$1" ]; then
+    [ $debug -eq 0 ] || printf "geoproc.sh: Debug: Output for $1 found\n" >&2
+  else
+    [ $debug -eq 0 ] || printf "geoproc.sh: Debug: Simulating failed output for non-imported script:\n\t$1\n" >&2
+    mkdir -p "$1"
+    echo "skipped" >"${1}.status.log"
+  fi
+}
+if [ ! -z "$import_be" ]; then
+  import_prior "$import_be" "$outdir/do_bulk_extractor.sh"
+fi
+if [ ! -z "$import_fiout" ]; then
+  import_prior "$import_fiout" "$outdir/make_fiwalk_dfxml.sh"
+fi
+if [ ! -z "$import_tskdb" ]; then
+  import_prior "$import_tskdb" "$outdir/make_tsk_db.sh"
+fi
+
+if [ $skip_absentees -eq 1 ]; then
+  if [ -z "$import_be" ]; then
+    maybe_simulate_failure "$outdir/do_bulk_extractor.sh"
+  fi
+  if [ -z "$import_fiout" ]; then
+    maybe_simulate_failure "$outdir/make_fiwalk_dfxml.sh"
+  fi
+  if [ -z "$import_tskdb" ]; then
+    maybe_simulate_failure "$outdir/make_tsk_db.sh"
+  fi
+fi
+
+#Set up optional limited target
+MAYBETARGETS=
+if [ ! -z "$targetscript" ]; then
+  MAYBETARGETS="TARGETSCRIPTS=$targetscript"
+fi
+
+num_cores=$(python3 "${pkgdatadir}/python/geoproc_cfg.py" --print_parameter="cores_available")
+if [ $? -ne 0 ]; then
+  echo "geoproc_process.sh: Warning: Error retrieving core usage parameter.  Defaulting to 8." >&2
+  num_cores=8
+fi
+
+cat "${pkgdatadir}/vchead" >"${outdir}.version.log"
+touch "${outdir}.status.log"
+geoproc_debug=$debug \
+  geoproc_precision_db="$precisiondb" \
+  make -C"${pkgdatadir}/process" -f"geoproc.mk" -j$num_cores --keep-going IMAGE="$IMAGE" RESULTSROOT="$RESULTSROOT" $MAYBETARGETS >"${outdir}.out.log" 2>"${outdir}.err.log";
+makerc=$?
+
+python3 "${pkgdatadir}/python/report.py" "${outdir}" >"${outdir}/index.html"
+
+echo $makerc>"${outdir}.status.log"
+exit $makerc

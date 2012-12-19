@@ -1,0 +1,26 @@
+#!/bin/bash
+
+#More verbose logging tips available at <http://serverfault.com/a/106012>
+
+set -x
+
+top_srcdir=@top_srcdir@
+pyscript=${top_srcdir}/python/test_argparse.py
+
+for p in python python3; do
+  x=$("$p" "$pyscript" -r foo) || exit 1
+  if [ ! "$x" = "foo" ]; then
+    echo "Unexected output: '$x', expected 'foo'" >&2
+    exit 2
+  fi
+  y=$("$p" "$pyscript" -r foo bar) || exit 3
+  if [ ! "$y" = "foo" ]; then
+    echo "Unexpected output: '$y', expected 'foo'" >&2
+    exit 4
+  fi
+  z=$("$p" "$pyscript" foo bar) || exit 5
+  if [ ! "$z" = "foobar" ]; then
+    echo "Unexpected output: '$z', expected 'foobar'" >&2
+    exit 6
+  fi
+done

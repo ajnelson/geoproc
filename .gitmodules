@@ -1,0 +1,9 @@
+[submodule "deps/bulk_extractor"]
+	path = deps/bulk_extractor
+	url = https://github.com/ajnelson/bulk_extractor.git
+[submodule "deps/sleuthkit"]
+	path = deps/sleuthkit
+	url = https://github.com/sleuthkit/sleuthkit.git
+[submodule "deps/dfxml"]
+	path = deps/dfxml
+	url = https://github.com/simsong/dfxml.git

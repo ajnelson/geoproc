@@ -1,0 +1,10 @@
+#!/bin/bash
+
+set -x
+
+prefix=@prefix@
+bindir=@bindir@
+
+for c in process aggregate summarize test_conn; do
+  ${prefix}${bindir}/geoproc.sh -d $c -h || exit 1
+done

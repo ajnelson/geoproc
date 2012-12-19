@@ -1,0 +1,128 @@
+
+__version__ = "0.2.1"
+
+import os,sys
+
+import mysql.connector as mdb
+
+debug = __name__ == "__main__" and len(set(["-d","--debug"]).intersection(set(sys.argv))) > 0
+
+def dprint(s):
+    if debug:
+        sys.stderr.write(str(s))
+        sys.stderr.write("\n")
+
+prefix="""@prefix@"""
+pkgdatadir="""@datadir@/@PACKAGE@""".replace("${prefix}",prefix)
+dprint("prefix:\t%r" % prefix)
+dprint("pkgdatadir:\t%r" % pkgdatadir)
+
+req_version = (2,8)
+cur_version = sys.version_info
+
+if cur_version >= req_version:
+   import configparser
+   config = configparser.ConfigParser()
+else:
+   import ConfigParser
+   config = ConfigParser.ConfigParser()
+
+class MySQLCursorDict(mdb.cursor.MySQLCursor):
+    """
+    Dictionary-cursor class c/o Geert JM Vanderkelen:
+    <http://geert.vanderkelen.org/connectorpython-custom-cursors/>
+    """
+    def _row_to_python(self, rowdata, desc=None):
+        row = super(MySQLCursorDict, self)._row_to_python(rowdata, desc)
+        if row:
+            return dict(zip(self.column_names, row))
+        return None
+
+default_cfg = os.path.join(pkgdatadir, "geoproc.cfg")
+home_cfg = os.path.join(os.getenv("HOME"), "geoproc.cfg")
+dprint([default_cfg, home_cfg])
+config.read([default_cfg, home_cfg])
+
+def db_password(config_parameter):
+    password_file_path = os.path.expanduser(config.get("mysql", config_parameter))
+    password_file_handle = open(os.path.abspath(os.path.join(os.getenv("HOME"), password_file_path)), 'r')
+    password = password_file_handle.read().strip()
+    password_file_handle.close()
+    return password
+
+def test_conn():
+    dprint("Debug: Connecting...")
+    lookupconn = mdb.Connect(
+      host=config.get("mysql", "maxmind_server"),
+      user=config.get("mysql", "maxmind_read_username"),
+      password=db_password("maxmind_read_password_file"),
+      db=config.get("mysql", "maxmind_schema"),
+      use_unicode=True
+    )
+    lookupcur = lookupconn.cursor(cursor_class=MySQLCursorDict)
+    dprint("Debug: Testing non-table selection...")
+    lookupcur.execute("SELECT 1;")
+    rows = [row for row in lookupcur]
+    assert len(rows) > 0
+    dprint("Debug: Testing ASCII city selection...")
+    lookupcur.execute("SELECT * FROM DistinctLocations WHERE city = %s;", ("Santa Cruz",))
+    rows = [row for row in lookupcur]
+    assert len(rows) > 0
+    dprint("Debug: Testing UTF-8 city selection...")
+    lookupcur.execute("SELECT * FROM DistinctLocations WHERE city = %s;", ("R\xf6ckersb\xfchl",))
+    rows = [row for row in lookupcur]
+    assert len(rows) > 0
+
+    dprint("Debug: Testing spatial querying...")
+    lookupcur.execute("select count(*) as tally from LocationLatLongs where MBRContains(GeomFromText('POLYGON((37 -121,36 -121,36 -122,37 -122,37 -121))'),latlong);")
+    rows = [row for row in lookupcur]
+    assert rows[0]["tally"] > 0
+
+    dprint("Debug: Testing library function latlongs_to_networked_locations on Monterey, CA...")
+    import geoproc_library
+    bounding_box = geoproc_library.latlong_to_bounding_square(36.6, -121.891, 30)
+    dprint("Debug: Bounding box: %r." % bounding_box)
+    locs = geoproc_library.latlongs_to_networked_locations(lookupcur, 36.6, -121.891, 30)
+    assert len(locs) > 1
+    
+    #Note: This has been observed to fail.  The connector class doesn't seem to catch this substitution.
+    #dprint("Debug: Testing spatial querying with substitution...")
+    #lookupcur.execute("select count(*) as tally from LocationLatLongs where MBRContains(GeomFromText(%s),latlong);", ("POLYGON((37 -121,36 -121,36 -122,37 -122,37 -121)",))
+    #rows = [row for row in lookupcur]
+    #assert rows[0]["tally"] > 0
+
+    dprint("Debug: Closing...")
+    lookupconn.close()
+    dprint("Debug: Done.")
+
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(description="Configuration library for database connectivity.")
+    parser.add_argument("-r", "--regress", action="store_true", help="Run regression tests and exit.")
+    parser.add_argument("-t", "--test-database-conn", action="store_true", help="Test database read connectivity and exit.")
+    parser.add_argument("-d", "--debug", action="store_true", help="Enable debug (writes to stderr).")
+    parser.add_argument("-p", "--print_parameter", default=None, help="Print configuration parameter value with this name and exit.")
+    args = parser.parse_args()
+
+    if args.print_parameter:
+        val = config.get("root", args.print_parameter)
+        #Sanity-check some values
+        integer_parameters = [
+          "cores_available"
+        ]
+        if args.print_parameter in integer_parameters:
+            assert val.isdigit()
+        sys.stdout.write(val)
+        sys.exit(0)
+    
+    if args.regress:
+        #print parameters
+        for section in config.sections():
+            print(section)
+            for option in config.options(section):
+                 print(option + ' = ' + config.get(section, option))
+        sys.exit(0)
+
+    if args.test_database_conn:
+        test_conn()
+        sys.exit(0)

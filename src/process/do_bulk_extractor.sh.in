@@ -1,0 +1,29 @@
+#!/bin/bash
+if [ $# -lt 2 ]; then
+  echo "Usage: $0 <image> <out_directory>"
+  exit 1
+fi
+
+prefix=@prefix@
+pkgdatadir=@datadir@/@PACKAGE@
+
+outdir="$2/bulk_extractor.out"
+
+if [ -d "$outdir" ]; then
+  rmdir "$outdir" || exit 1
+fi
+
+image=$1
+
+if [ "x$image" == "x" ]; then
+  echo "Error: image variable not set." 1>&2
+  exit 1
+fi
+
+num_cores=$(python3 "${pkgdatadir}/python/geoproc_cfg.py" --print_parameter="cores_available")
+if [ $? -ne 0 ]; then
+  echo "do_bulk_extractor.sh: Warning: Error retrieving core usage parameter.  Defaulting to 8." >&2
+  num_cores=8
+fi
+
+bulk_extractor -e net -e httpheader -j$num_cores -o "$outdir" "$image"

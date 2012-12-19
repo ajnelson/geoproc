@@ -1,0 +1,42 @@
+#!/bin/bash
+
+#Check the exit status of all dependencies that are prior script executions.
+
+prefix=@prefix@
+pkgdatadir=@datadir@/@PACKAGE@
+
+imageoutroot="$1"
+targetscript="$2"
+
+do_debug=$([ ! -z "$geoproc_debug" ] && [ $geoproc_debug -eq 1 ]; echo $?)
+echo $do_debug
+
+if [ $do_debug -eq 0 ]; then
+  echo "check_dependencies.sh: Debug: \$PWD= $PWD" >&2
+  echo "check_dependencies.sh: Debug: \$1= $1" >&2
+  echo "check_dependencies.sh: Debug: \$2= $2" >&2
+  echo "check_dependencies.sh: Debug: \$@= $@" >&2
+fi
+
+i=1
+for arg in "$@"; do
+  [ $do_debug -eq 0 ] && echo "check_dependencies.sh: Debug: \$targetscript=$targetscript, \$i=$i, \$arg= $arg" >&2
+  if [ $i -gt 2 ]; then
+    if [ ! -f "$arg.status.log" ]; then
+      #Not all the inputs are tracked script output directories, e.g. cities.txt
+      [ $do_debug -eq 0 ] && echo "check_dependencies.sh: Debug: Skipping checking dependency exit status for '$arg'." >&2
+      continue
+    fi
+    if ! python3 "${pkgdatadir}/python/success.py" "$arg.status.log" ; then
+      #Error in processing - proceed only if this dependency is error-tolerant
+      other_script=$(basename ${arg/%${imageoutroot}/})
+      [ $do_debug -eq 0 ] && echo "check_dependencies.sh: Debug: Testing fault-tolerance for $2 and $other_script..." >&2
+      if [ $(grep "\\b$2\\b" "${pkgdatadir}/process/fault_tolerance.cfg" | grep "\\b$other_script\\b" | wc -l) -ne 1 ]; then
+        echo "check_dependencies.sh: Note: Error in required dependency $arg; halting Make." >&2
+        exit 1
+      fi
+    fi
+  fi
+  i=$(($i + 1))
+done
+exit 0

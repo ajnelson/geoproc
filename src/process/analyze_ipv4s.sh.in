@@ -1,0 +1,22 @@
+#!/bin/bash
+
+prefix=@prefix@
+pkgdatadir=@datadir@/@PACKAGE@
+
+#One-liner c/o http://stackoverflow.com/a/246128/1207160
+SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+outdir="$2"
+
+bedir="${outdir/%analyze_ipv4s.sh/check_bulk_extractor.sh}/bulk_extractor.out"
+
+#Check anno dir exit status to see if we'll use optional annotation content
+db_annodir="${outdir/%analyze_ipv4s.sh/verify_fiwalk_versus_tsk_db.sh}"
+echo "Debug: Checking status of Fiwalk+TSK database for annotation, \"${db_annodir}.status.log\"." >&2
+maybe_anno_db=
+if python3 "${pkgdatadir}/python/success.py" "${db_annodir}.status.log" ; then
+  maybe_anno_db="-a ${db_annodir}/tsk_fiwalk_anno.db"
+fi
+
+cd "$outdir"
+python3 "${pkgdatadir}/python/analyze_ipv4s.py" $maybe_anno_db "$bedir" 

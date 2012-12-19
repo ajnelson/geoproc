@@ -1,0 +1,15 @@
+#!/bin/bash
+
+prefix=@prefix@
+pkgdatadir=@datadir@/@PACKAGE@
+
+#One-liner c/o http://stackoverflow.com/a/246128/1207160
+SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+outdir="$2"
+
+bulk_extractor_output="${outdir/%do_identify_filenames.sh/check_bulk_extractor.sh}/bulk_extractor.out"
+
+xmlfile="${outdir/%do_identify_filenames.sh/make_fiwalk_dfxml.sh}/fiout.xml"
+
+python3 "${pkgdatadir}/python/identify_filenames.py" --all --xmlfile="$xmlfile" "$bulk_extractor_output" "$outdir"

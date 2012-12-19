@@ -1,0 +1,20 @@
+#!/bin/bash
+
+set -e
+set -v
+
+prefix=@prefix@
+pkgdatadir=@datadir@/@PACKAGE@
+pyscript=${pkgdatadir}/python/geoproc_cfg.py
+
+any_failure=0
+for p in python python3; do
+  echo "Checking database connectivity with Python binary at $p..."
+  if "$p" "$pyscript" --debug --test-database-conn; then
+    echo "Connection good."
+  else
+    any_failure=1
+    echo "Connection failed." >&2
+  fi
+done
+exit $any_failure

@@ -1,0 +1,12 @@
+#!/bin/bash
+
+prefix=@prefix@
+pkgdatadir=@datadir@/@PACKAGE@
+
+outdir="$2"
+
+pushd "$outdir" >/dev/null
+python3 "${pkgdatadir}/python/fetch_location_lists.py" 
+rc=$?
+popd >/dev/null
+exit $rc

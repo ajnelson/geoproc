@@ -1,0 +1,129 @@
+#!/bin/bash
+
+#Define autotool variables
+GNU_GETOPT=@GNU_GETOPT@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+bindir=@bindir@
+#pkgdatadir macro variable isn't resolving for some reason...
+pkgdatadir=@datadir@/@PACKAGE@
+
+scriptname=$(basename $BASH_SOURCE)
+
+get_abspath() {
+  python3 -c 'import os,sys; print(os.path.abspath(os.path.expanduser(sys.argv[1])))' "$1"
+}
+
+#Set up usage string
+
+usage="Usage: $0 command [options]\n"
+usage=$usage"Commands:\n"
+usage=$usage"  * process\n"
+usage=$usage"      Start processing workflow on a disk image.\n"
+usage=$usage"  * aggregate\n"
+usage=$usage"      Aggregate location artifacts from an output directory of 'process'.\n"
+usage=$usage"  * evaluate_precision\n"
+usage=$usage"      Evaluate location votes against a ground truth database.\n"
+usage=$usage"  * build_ip_tables\n"
+usage=$usage"      Build or update the IPv4-to-location mapping tables.\n"
+usage=$usage"      (This command should only be needed on the database server.)\n"
+usage=$usage"  * summarize\n"
+usage=$usage"      Produce an HTML report on an output directory of 'process'.\n"
+usage=$usage"  * test_conn\n"
+usage=$usage"      Test database connection with current configuration.\n"
+usage=$usage"\n"
+usage=$usage"Options:\n"
+usage=$usage"  -h, --help\n"
+usage=$usage"    Print help (this message) and exit.  Also works on any of the commands.\n"
+
+usage() {
+  printf "$usage" >&2
+}
+
+#Canonicalize command-line options with GNU getopt
+#  BSD getopt (default on OS X) does not behave correctly <http://stackoverflow.com/a/7948533/1207160>.
+if ! options=$(${GNU_GETOPT} -o +dh -l debug,help -- "$@"); then
+# Something went wrong; getopt should report what.
+exit 1
+fi
+eval set -- "$options"
+
+debug=0
+
+#Handle command-line arguments and options
+while [ $# -ge 1 ]; do
+  case $1 in
+    -h | --help )
+      usage
+      exit 0
+      ;;
+    -d | --debug )
+      debug=1
+      ;;
+    -- )
+      shift
+      break
+      ;;
+    * )
+      echo "geoproc.sh: Error: Unexpected command-line argument ($1)." >&2
+      echo >&2
+      usage
+      exit 1
+  esac
+  shift
+done
+
+if [ $debug -ne 0 ]; then
+  echo "geoproc.sh: Debug: \$scriptname: $scriptname" >&2
+  echo "geoproc.sh: Debug: Remaining arguments array: $@" >&2
+  echo "geoproc.sh: Debug: getopt \$options: $options" >&2
+fi
+
+if [ $# -eq 0 ]; then
+  usage
+  exit 1
+fi
+
+#Invoke geoproc command with an augmented Python path
+case $1 in
+  process )
+    shift
+    PYTHONPATH="${pkgdatadir}/python:$PYTHONPATH" \
+      "${pkgdatadir}/scripts/geoproc_process.sh" "$@"
+    exit $?
+    ;;
+  aggregate )
+    shift
+    PYTHONPATH="${pkgdatadir}/python:$PYTHONPATH" \
+      python3 "${pkgdatadir}/python/aggregate.py" --ground_truth="${pkgdatadir}/location_ground_truth.db" "$@"
+    exit $?
+    ;;
+  evaluate_precision )
+    shift
+    PYTHONPATH="${pkgdatadir}/python:$PYTHONPATH" \
+      python3 "${pkgdatadir}/python/evaluate.py" "$@"
+    exit $?
+    ;;
+  build_ip_tables )
+    shift
+    PYTHONPATH="${pkgdatadir}/python:$PYTHONPATH" \
+      python "${pkgdatadir}/python/populate_maxmind_tables_from_zips.py" "$@"
+    exit $?
+    ;;
+  summarize )
+    shift
+    PYTHONPATH="${pkgdatadir}/python:$PYTHONPATH" \
+      python3 "${pkgdatadir}/python/summarize.py" "$@"
+    exit $?
+    ;;
+  test_conn )
+    shift
+    PYTHONPATH="${pkgdatadir}/python:$PYTHONPATH" \
+      "${pkgdatadir}/scripts/geoproc_test_conn.sh" "$@"
+    exit $?
+    ;;
+  * )
+    echo "geoproc.sh: Error: Unexpected command ($1)." >&2
+    usage
+    exit 1
+esac
