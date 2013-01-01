@@ -107,7 +107,7 @@ case $1 in
   build_ip_tables )
     shift
     PYTHONPATH="${pkgdatadir}/python:$PYTHONPATH" \
-      python "${pkgdatadir}/python/populate_maxmind_tables_from_zips.py" "$@"
+      python3 "${pkgdatadir}/python/populate_maxmind_tables_from_zips.py" "$@"
     exit $?
     ;;
   summarize )
