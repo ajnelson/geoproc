@@ -14,6 +14,7 @@ if [ -r /etc/debian_version ]; then
     exiv2 \
     flex \
     g++ \
+    graphviz \
     libexiv2-dev \
     libexpat1-dev \
     libtool \
