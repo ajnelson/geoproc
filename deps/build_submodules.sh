@@ -3,6 +3,7 @@
 #
 #Configure and install all Git-tracked dependencies for geoproc 
 
+#TODO set -e isn't causing an error-out when 'bootstrap' isn't found under deps/sleuthkit.
 set -e
 set -x
 
@@ -39,3 +40,5 @@ echo "Note: installing bulk_extractor" >&2
 pushd $REPODIR/deps/bulk_extractor
 sh bootstrap.sh && ./configure --prefix=$INSTALLDIR && make && $MAKEINSTALL
 popd
+
+echo "Done."
