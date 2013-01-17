@@ -1,1 +1,2 @@
-EXTRA_DIST = create_maxmind.sql
+EXTRA_DIST = \
+  maxmind_minimal_setup.sql

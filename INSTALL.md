@@ -8,7 +8,7 @@ Currently, the build process assumes starting from a fresh installation of one o
 
 ### Dependent packages
 
-Packages can be installed with the appropriate script `deps/install_dependent_packages-${your_distro}.sh`.  GeoProc was developed in Fedora and Mac OS X.  Other distros are not currently supported.
+Packages can be installed with the appropriate script `deps/install_dependent_packages-(your distro).sh`.  GeoProc was developed in Fedora and Mac OS X, and is being tested in Ubuntu.  Other distros are not currently supported.
 
 ### Dependent programs
 
@@ -21,14 +21,18 @@ To build and install programs that have specific versions tracked by Git submodu
 
 There are two choices on installing the utilities:
 
- * If you are willing to augment your shell's PATH variables to include the `~/local` prefix, run `deps/build_submodules.sh local [prefix_directory]`; `prefix_directory` is optional and defaults to `$HOME/local`.  The file `deps/bashrc` includes the specific path augmentations that make this work; appending this file to your own `~/.bashrc` is sufficient.
+ * If you are willing to augment your shell's PATH variables to include the `~/local` prefix, run `deps/build_submodules.sh local [prefix_directory]`; `prefix_directory` is optional and defaults to `$HOME/local`.  The file `deps/bashrc` includes the specific path augmentations that make this work; appending this file to your own `~/.bashrc` is sufficient (though don't forget to refresh your environment with `source ~/.bashrc` when you modify your `~/.bashrc` file).
  * If you would rather install these utilities system-wide, run `deps/build_submodules.sh system`.
+ 
+After building, this command should show an options list:
+
+    icat
 
 Until GeoProc is packaged properly for `yum`, `apt-get` or `port` installations, the `local` option is recommended.
 
 ### GeoProc
 
-Finally, GeoProc can be built with:
+GeoProc can be built with:
 
     ./bootstrap.sh && ./configure && make && sudo make install
 
@@ -36,13 +40,23 @@ Until GeoProc is added to package managers, you may prefer a local installation 
 
     ./bootstrap.sh && ./configure --prefix=$HOME/local && make && make install
 
-## Building the database
+## Setting up the database
 
-The GeoProc command `geoproc.sh build_ip_tables` populates a MySQL database with IP address location mappings.  Setting up a fresh MySQL installation is beyond the scope of this documentation, but once things are generally up and running, and a user (such as `db_writer`) exists, you can use the `src/mysql_setup/create_maxmind.sql` script to set up the last schema details.
+To build a development or testing database, GeoProc includes a minimal setup script you can run after building a MySQL server and securing it as desired (e.g. starting with `mysql_secure_installation`).  To populate it, the built GeoProc program includes a command that can load any number of months of MaxMind IP-location data.
 
-The database is populated with content provided by MaxMind.  Download at least the most recent [GeoLite city](https://geolite.maxmind.com/download/geoip/database/GeoLiteCity_CSV/) data, though you can download as many months of data as you wish.  The `build_ip_tables` command builds the database tables if needed, and loads any data not yet in the database.
+### Creating the database
 
-At the moment, that program requires database configuration files similar to the rest of GeoProc, so the rest of GeoProc needs to first be built.  In the future this will require only a reduced configuration file and could run without needing to build everything else.
+The GeoProc command `geoproc.sh build_ip_tables` populates a MySQL database with IP address location mappings.  Setting up a fresh MySQL installation is beyond the scope of this documentation, but once things are generally up and running, you can use the `maxmind_minimal_setup.sql` script to set up the last schema details:
+
+    mysql -p -u root <src/mysql_setup/maxmind_minimal_setup.sql
+
+Note that those SQL instructions are sufficient for a development or testing environment, but a production server will likely have more stringent security requirements that this documentation cannot foresee.
+
+### Populating the database
+
+The database is populated with content provided by MaxMind.  Download at least the most recent [GeoLite city](https://geolite.maxmind.com/download/geoip/database/GeoLiteCity_CSV/) data, though you can download as many months of data as you wish.  Download zip files, but do not unpack them (GeoProc uses time stamps contained in the zip files).  The `build_ip_tables` command builds the database tables if needed, and loads any data not yet in the database.  Note that you will need the database connection config file (`etc/geoproc.cfg`) in place (copied to `~/geoproc.cfg` and edited to your liking, though its default contents match this documenation).
+
+At the moment, the populating action requires database configuration files similar to the rest of GeoProc, so the rest of GeoProc needs to first be built.  In the future this will require only a reduced configuration file and could run without needing to build everything else.
 
 ## Testing and developing
 
@@ -52,6 +66,6 @@ A suite of regression tests is built into the workflow's programs.  Every build 
 
 This builds the code, installs into a local directory, runs all the regression tests, and tests the database connection.
 
-If you wish to add your own scripts to the workflow, it is easiest to follow by example of other scripts that are already a part of the workflow.  Issuing this should give a sufficient idea of what's needed to insert your own component script:
+If you wish to add your own scripts to the workflow, it is easiest to follow by example of other scripts that are already a part of the workflow.  Issuing this in the GeoProc top source directory should give a sufficient idea of what's needed to insert your own component script:
 
     grep -R 'analyze_email_files.sh' *
