@@ -1,10 +1,7 @@
 #Path extensions for local installation of forensic software
 #NOTE: Even if you don't do a local installation, the /usr/local/lib path insertions are necessary due to not being included by default in Fedora or Ubuntu.  bulk_extractor and fiwalk fail to load a TSK module without those path additions.
 
-#Adjust as necessary - this assumes geoproc checked out to ~, and ~/local is the build directory.
-export GEOPROC_SRC_DIR="$HOME/local/src/geoproc"
-
-export PATH="$GEOPROC_SRC_DIR/deps/hivex/xml:$HOME/local/bin:$PATH"
+export PATH="$HOME/local/bin:$PATH"
 export LIBRARY_PATH="$HOME/local/lib:/usr/local/lib:$LIBRARY_PATH"
 export LD_LIBRARY_PATH="$HOME/local/lib:/usr/local/lib:$LD_LIBRARY_PATH"
 export C_INCLUDE_PATH="$HOME/local/include:$C_INCLUDE_PATH"
