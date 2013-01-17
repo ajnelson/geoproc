@@ -3,9 +3,7 @@
 set -e
 set -x
 
-#python-mysql.connector is only for Python2
-echo "Due to a missing Python3 package (mysql.connector), Ubuntu is not currently supported." >&2
-exit 1
+#TODO add mysql.connector check to configure script
 
 if [ -r /etc/debian_version ]; then
   #Assume Ubuntu
@@ -27,4 +25,5 @@ if [ -r /etc/debian_version ]; then
     python3 \
     python-dev \
     zlib1g-dev
+  echo "The mysql.connector library is not packaged for Python 3 in Ubuntu.  Download from mysql.com (Oracle) and install."
 fi
