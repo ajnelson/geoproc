@@ -62,7 +62,14 @@ At the moment, the populating action requires database configuration files simil
 
 A suite of regression tests is built into the workflow's programs.  Every build is tested from source with the following commands:
 
-    ./bootstrap.sh && ./configure --prefix=$PWD/build && make && make check && make distcheck && make install && build/bin/geoproc.sh test_conn -d && echo "Build successful."
+    ./bootstrap.sh && \
+      ./configure --prefix=$PWD/build && \
+      make && \
+      make check && \
+      make distcheck && \
+      make install && \
+      build/bin/geoproc.sh test_conn -d && \
+      echo "Build successful."
 
 This builds the code, installs into a local directory, runs all the regression tests, and tests the database connection.
 
