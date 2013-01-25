@@ -69,3 +69,7 @@ This builds the code, installs into a local directory, runs all the regression t
 If you wish to add your own scripts to the workflow, it is easiest to follow by example of other scripts that are already a part of the workflow.  Issuing this in the GeoProc top source directory should give a sufficient idea of what's needed to insert your own component script:
 
     grep -R 'analyze_email_files.sh' *
+
+## Troubleshooting
+
+If, while building the git-tracked projects, you are encountering errors with libewf symbols not being found, check if you have a libewf package installed *and* you have libewf installed under your local prefix (e.g. `$HOME/local/include/libewf.h` exists).  This confuses the compiler and linker and causes the build to fail.  On Fedora, you can check for the installed package with `yum list installed | grep ewf`.
