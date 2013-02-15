@@ -11,11 +11,15 @@ Makefile
 aclocal.m4
 autom4te.cache
 autoscan.log
+config.guess
+config.sub
 configure
+depcomp
 install-sh
 missing
 config.log
 config.status
+test-driver
 
 #Other output
 vchead
